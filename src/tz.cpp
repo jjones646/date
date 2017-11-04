@@ -89,6 +89,9 @@
 #if USE_OS_TZDB
 #  include <dirent.h>
 #endif
+#if MAKE_PORTABLE
+#  include <array>
+#endif
 #include <algorithm>
 #include <cctype>
 #include <cstdlib>
@@ -487,6 +490,9 @@ load_timezone_mappings_from_xml_file(const std::string& input_path)
     std::vector<detail::timezone_mapping> mappings;
     std::string line;
 
+#if MAKE_PORTABLE
+    std::istringstream is(@TZDB_WINDOWSZONES@);
+#else
     std::ifstream is(input_path);
     if (!is.is_open())
     {
@@ -496,6 +502,7 @@ load_timezone_mappings_from_xml_file(const std::string& input_path)
         msg += "\".";
         throw std::runtime_error(msg);
     }
+#endif
 
     auto error = [&input_path, &line_num](const char* info)
     {
@@ -625,7 +632,9 @@ load_timezone_mappings_from_xml_file(const std::string& input_path)
         }
     }
 
+#if !MAKE_PORTABLE
     is.close();
+#endif
     return mappings;
 }
 
@@ -3258,6 +3267,9 @@ static
 std::string
 get_version(const std::string& path)
 {
+#if MAKE_PORTABLE
+    return "@DATE_TZDB_VERSION@";
+#else
     std::string version;
     std::ifstream infile(path + "version");
     if (infile.is_open())
@@ -3280,6 +3292,7 @@ get_version(const std::string& path)
         }
     }
     throw std::runtime_error("Unable to get Timezone database version from " + path);
+#endif
 }
 
 static
@@ -3332,6 +3345,7 @@ init_tzdb()
         }
     }
 #else  // !AUTO_DOWNLOAD
+#  if !MAKE_PORTABLE
     if (!file_exists(install))
     {
         std::string msg = "Timezone database not found at \"";
@@ -3339,18 +3353,39 @@ init_tzdb()
         msg += "\"";
         throw std::runtime_error(msg);
     }
+#  endif
     db->version = get_version(path);
 #endif  // !AUTO_DOWNLOAD
 
+#if MAKE_PORTABLE
+    static std::array<std::string, 12> files = {
+@TZDB_AFRICA@,
+@TZDB_ANTARCTICA@,
+@TZDB_ASIA@,
+@TZDB_AUSTRALASIA@,
+@TZDB_BACKWARD@,
+@TZDB_ETCETERA@,
+@TZDB_EUROPE@,
+@TZDB_PACIFICNEW@,
+@TZDB_NORTHAMERICA@,
+@TZDB_SOUTHAMERICA@,
+@TZDB_SYSTEMV@,
+@TZDB_LEAPSECONDS@
+};
+#else
     CONSTDATA char*const files[] =
     {
         "africa", "antarctica", "asia", "australasia", "backward", "etcetera", "europe",
         "pacificnew", "northamerica", "southamerica", "systemv", "leapseconds"
     };
-
+#endif
     for (const auto& filename : files)
     {
+#if MAKE_PORTABLE
+        std::istringstream infile(filename);
+#else
         std::ifstream infile(path + filename);
+#endif
         while (infile)
         {
             std::getline(infile, line);

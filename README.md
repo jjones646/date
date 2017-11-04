@@ -34,6 +34,23 @@ This is actually several separate C++11/C++14 libraries:
    * Current proposal:  http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0355r4.html
    * Draft revision:  http://howardhinnant.github.io/date/d0355r5.html
 
+To build and run the tests:
+```
+# create build directory
+mkdir build && cd build
+
+# run cmake
+cmake ..
+# or use `cmake-gui ..` to see available options
+
+# build the library
+cmake --build .
+
+# run the tests, optionally with verbose output
+ctest . [-V]
+# p.s. things go a bit faster in parallel: `ctest . -j 6`
+```
+
 List of projects using this library:
 
    * www.safe.com

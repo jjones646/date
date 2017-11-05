@@ -80,4 +80,4 @@ unset( _test_case_name )
 unset( _fail_sources  CACHE )
 
 # timezone test validate
-add_subdirectory( tz_test )
+# add_subdirectory( tz_test )
